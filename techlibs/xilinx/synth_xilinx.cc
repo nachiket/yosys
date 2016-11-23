@@ -103,6 +103,7 @@ struct SynthXilinxPass : public Pass {
 		log("        clean\n");
 		log("\n");
 		log("    map_cells:\n");
+		log("        shregmap -tech xilinx\n");
 		log("        techmap -map +/xilinx/cells_map.v\n");
 		log("        dffinit -ff FDRE Q INIT -ff FDCE Q INIT -ff FDPE Q INIT\n");
 		log("        clean\n");
@@ -214,6 +215,7 @@ struct SynthXilinxPass : public Pass {
 
 		if (check_label(active, run_from, run_to, "map_cells"))
 		{
+			Pass::call(design, "shregmap -tech xilinx");
 			Pass::call(design, "techmap -map +/xilinx/cells_map.v");
 			Pass::call(design, "dffinit -ff FDRE Q INIT -ff FDCE Q INIT -ff FDPE Q INIT");
 			Pass::call(design, "clean");

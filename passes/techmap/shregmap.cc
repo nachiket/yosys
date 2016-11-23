@@ -27,7 +27,7 @@ struct ShregmapTech
 {
 	virtual ~ShregmapTech() { }
 	virtual bool analyze(vector<int> &taps) = 0;
-	virtual bool fixup(Cell *cell, dict<int, SigBit> &taps) = 0;
+	virtual bool fixup(Cell *cell, dict<int, SigBit> &taps, int depth) = 0;
 };
 
 struct ShregmapOptions
@@ -52,6 +52,50 @@ struct ShregmapOptions
 	}
 };
 
+struct ShregmapTechXilinx : ShregmapTech
+{
+	bool analyze(vector<int> &taps)
+	{
+		if (GetSize(taps) > 2 && taps[0] == 0 && taps[2] < 17) {
+			taps.clear();
+			return true;
+		}
+
+		if (GetSize(taps) > 2)
+			return false;
+
+		if (taps.back() > 16) return false;
+
+		return true;
+	}
+
+	bool fixup(Cell *cell, dict<int, SigBit> &taps, int depth)
+	{
+		auto D = cell->getPort("\\D");
+		auto CLK = cell->getPort("\\C");
+		//auto CE = cell->getPort("\\CE");
+		//auto A0 = cell->getPort("\\A0");
+		//auto A1 = cell->getPort("\\A1");
+		//auto A2 = cell->getPort("\\A2");
+		//auto A3 = cell->getPort("\\A3");
+		//auto Q = cell->getPort("\\Q");
+
+		auto newcell = cell->module->addCell(NEW_ID, "\\SRL16E");
+		newcell->setPort("\\CLK", CLK);
+		newcell->setPort("\\CE", RTLIL::SigSpec(true));
+		newcell->setPort("\\IN", D);
+
+		newcell->setPort("\\A0", RTLIL::SigSpec(false));
+		newcell->setPort("\\A1", RTLIL::SigSpec(true));
+		newcell->setPort("\\A2", RTLIL::SigSpec(true));
+		newcell->setPort("\\A3", RTLIL::SigSpec(false));
+
+		//newcell->setPort("\\Q", Q);
+		//printf("taps=%d\n",GetSize(taps));
+		return false;
+	}
+};
+
 struct ShregmapTechGreenpak4 : ShregmapTech
 {
 	bool analyze(vector<int> &taps)
@@ -69,7 +113,7 @@ struct ShregmapTechGreenpak4 : ShregmapTech
 		return true;
 	}
 
-	bool fixup(Cell *cell, dict<int, SigBit> &taps)
+	bool fixup(Cell *cell, dict<int, SigBit> &taps, int depth)
 	{
 		auto D = cell->getPort("\\D");
 		auto C = cell->getPort("\\C");
@@ -338,7 +382,7 @@ struct ShregmapWorker
 			first_cell->setPort(q_port, last_cell->getPort(q_port));
 			first_cell->setParam("\\DEPTH", depth);
 
-			if (opts.tech != nullptr && !opts.tech->fixup(first_cell, taps_dict))
+			if (opts.tech != nullptr && !opts.tech->fixup(first_cell, taps_dict, depth))
 				remove_cells.insert(first_cell);
 
 			for (int i = 1; i < depth; i++)
@@ -445,8 +489,8 @@ struct ShregmapPass : public Pass {
 		log("        generated cells with the initialization value. (first bit to shift out\n");
 		log("        in LSB position)\n");
 		log("\n");
-		log("    -tech greenpak4\n");
-		log("        map to greenpak4 shift registers.\n");
+		log("    -tech {greenpak4,xilinx}\n");
+		log("        map to greenpak4 or Xilinx shift registers.\n");
 		log("\n");
 	}
 	virtual void execute(std::vector<std::string> args, RTLIL::Design *design)
@@ -501,6 +545,12 @@ struct ShregmapPass : public Pass {
 					clkpol = "pos";
 					opts.zinit = true;
 					opts.tech = new ShregmapTechGreenpak4;
+				} else if (tech == "xilinx") {
+					printf("Detected ShregmapTechXilinx\n");
+					clkpol = "pos";
+					enpol = "pos";
+					opts.zinit = false;
+					opts.tech = new ShregmapTechXilinx;
 				} else {
 					argidx--;
 					break;
