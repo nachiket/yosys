@@ -129,7 +129,7 @@ void rmunused_module_cells(Module *module, bool verbose)
 	unused.sort(RTLIL::sort_by_name_id<RTLIL::Cell>());
 
 	for (auto cell : unused) {
-		//if (verbose)
+		if (verbose)
 			log("  removing unused `%s' cell `%s'.\n", cell->type.c_str(), cell->name.c_str());
 		module->design->scratchpad_set_bool("opt.did_something", true);
 		module->remove(cell);
@@ -334,7 +334,7 @@ void rmunused_module_signals(RTLIL::Module *module, bool purge_mode, bool verbos
 
 void rmunused_module(RTLIL::Module *module, bool purge_mode, bool verbose)
 {
-//	if (verbose)
+	if (verbose)
 		log("Finding unused cells or wires in module %s..\n", module->name.c_str());
 
 	std::vector<RTLIL::Cell*> delcells;
