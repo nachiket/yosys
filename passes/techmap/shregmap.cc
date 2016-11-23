@@ -78,19 +78,19 @@ struct ShregmapTechXilinx : ShregmapTech
 		//auto A1 = cell->getPort("\\A1");
 		//auto A2 = cell->getPort("\\A2");
 		//auto A3 = cell->getPort("\\A3");
-		//auto Q = cell->getPort("\\Q");
+		auto Q = cell->getPort("\\Q");
 
 		auto newcell = cell->module->addCell(NEW_ID, "\\SRL16E");
 		newcell->setPort("\\CLK", CLK);
 		newcell->setPort("\\CE", RTLIL::SigSpec(true));
-		newcell->setPort("\\IN", D);
+		newcell->setPort("\\D", D);
 
 		newcell->setPort("\\A0", RTLIL::SigSpec(false));
 		newcell->setPort("\\A1", RTLIL::SigSpec(true));
 		newcell->setPort("\\A2", RTLIL::SigSpec(true));
 		newcell->setPort("\\A3", RTLIL::SigSpec(false));
 
-		//newcell->setPort("\\Q", Q);
+		newcell->setPort("\\Q", Q);
 		//printf("taps=%d\n",GetSize(taps));
 		return false;
 	}
