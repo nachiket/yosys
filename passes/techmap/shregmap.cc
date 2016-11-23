@@ -27,7 +27,7 @@ struct ShregmapTech
 {
 	virtual ~ShregmapTech() { }
 	virtual bool analyze(vector<int> &taps) = 0;
-	virtual bool fixup(Cell *cell, dict<int, SigBit> &taps, int depth) = 0;
+	virtual bool fixup(Cell *cell, dict<int, SigBit> &taps) = 0;
 };
 
 struct ShregmapOptions
@@ -56,28 +56,17 @@ struct ShregmapTechXilinx : ShregmapTech
 {
 	bool analyze(vector<int> &taps)
 	{
-		if (GetSize(taps) > 2 && taps[0] == 0 && taps[2] < 17) {
-			taps.clear();
-			return true;
-		}
-
-		if (GetSize(taps) > 2)
+		if (GetSize(taps) > 1 || taps[0] > 16) {
 			return false;
-
-		if (taps.back() > 16) return false;
+		}
 
 		return true;
 	}
 
-	bool fixup(Cell *cell, dict<int, SigBit> &taps, int depth)
+	bool fixup(Cell *cell, dict<int, SigBit> &taps)
 	{
 		auto D = cell->getPort("\\D");
 		auto CLK = cell->getPort("\\C");
-		//auto CE = cell->getPort("\\CE");
-		//auto A0 = cell->getPort("\\A0");
-		//auto A1 = cell->getPort("\\A1");
-		//auto A2 = cell->getPort("\\A2");
-		//auto A3 = cell->getPort("\\A3");
 		auto Q = cell->getPort("\\Q");
 
 		auto newcell = cell->module->addCell(NEW_ID, "\\SRL16E");
@@ -85,13 +74,14 @@ struct ShregmapTechXilinx : ShregmapTech
 		newcell->setPort("\\CE", RTLIL::SigSpec(true));
 		newcell->setPort("\\D", D);
 
-		newcell->setPort("\\A0", RTLIL::SigSpec(false));
-		newcell->setPort("\\A1", RTLIL::SigSpec(true));
-		newcell->setPort("\\A2", RTLIL::SigSpec(true));
-		newcell->setPort("\\A3", RTLIL::SigSpec(false));
-
-		newcell->setPort("\\Q", Q);
-		//printf("taps=%d\n",GetSize(taps));
+		for (auto tap : taps) {
+			newcell->setPort("\\Q", tap.second);
+			newcell->setPort("\\A0", tap.first%2     ? RTLIL::SigSpec(true) : RTLIL::SigSpec(false));
+			newcell->setPort("\\A1", (tap.first/2)%2 ? RTLIL::SigSpec(true) : RTLIL::SigSpec(false));
+			newcell->setPort("\\A2", (tap.first/4)%2 ? RTLIL::SigSpec(true) : RTLIL::SigSpec(false));
+			newcell->setPort("\\A3", (tap.first/8)%2 ? RTLIL::SigSpec(true) : RTLIL::SigSpec(false));
+		}
+		//newcell->setPort("\\Q", Q);
 		return false;
 	}
 };
@@ -113,7 +103,7 @@ struct ShregmapTechGreenpak4 : ShregmapTech
 		return true;
 	}
 
-	bool fixup(Cell *cell, dict<int, SigBit> &taps, int depth)
+	bool fixup(Cell *cell, dict<int, SigBit> &taps)
 	{
 		auto D = cell->getPort("\\D");
 		auto C = cell->getPort("\\C");
@@ -382,7 +372,7 @@ struct ShregmapWorker
 			first_cell->setPort(q_port, last_cell->getPort(q_port));
 			first_cell->setParam("\\DEPTH", depth);
 
-			if (opts.tech != nullptr && !opts.tech->fixup(first_cell, taps_dict, depth))
+			if (opts.tech != nullptr && !opts.tech->fixup(first_cell, taps_dict))
 				remove_cells.insert(first_cell);
 
 			for (int i = 1; i < depth; i++)
