@@ -311,6 +311,74 @@ module FIFO36E1 (...);
     input WREN;
 endmodule
 
+module FIFO36E2 (...); 
+  parameter CASCADE_ORDER = "NONE";
+  parameter CLOCK_DOMAINS = "INDEPENDENT";
+  parameter EN_ECC_PIPE = "FALSE";
+  parameter EN_ECC_READ = "FALSE";
+  parameter EN_ECC_WRITE = "FALSE";
+  parameter FIRST_WORD_FALL_THROUGH = "FALSE";
+  parameter [71:0] INIT = 72'h000000000000000000;
+  parameter [0:0] IS_RDCLK_INVERTED = 1'b0;
+  parameter [0:0] IS_RDEN_INVERTED = 1'b0;
+  parameter [0:0] IS_RSTREG_INVERTED = 1'b0;
+  parameter [0:0] IS_RST_INVERTED = 1'b0;
+  parameter [0:0] IS_WRCLK_INVERTED = 1'b0;
+  parameter [0:0] IS_WREN_INVERTED = 1'b0;
+  parameter integer PROG_EMPTY_THRESH = 256;
+  parameter integer PROG_FULL_THRESH = 256;
+  parameter RDCOUNT_TYPE = "RAW_PNTR";
+  parameter integer READ_WIDTH = 4;
+  parameter REGISTER_MODE = "UNREGISTERED";
+  parameter RSTREG_PRIORITY = "RSTREG";
+  parameter SLEEP_ASYNC = "FALSE";
+  parameter [71:0] SRVAL = 72'h000000000000000000;
+  parameter WRCOUNT_TYPE = "RAW_PNTR";
+  parameter integer WRITE_WIDTH = 4;
+
+  output [63:0] CASDOUT;
+  output [7:0] CASDOUTP;
+  output CASNXTEMPTY;
+  output CASPRVRDEN;
+  output DBITERR;
+  output [63:0] DOUT;
+  output [7:0] DOUTP;
+  output [7:0] ECCPARITY;
+  output EMPTY;
+  output FULL;
+  output PROGEMPTY;
+  output PROGFULL;
+  output [13:0] RDCOUNT;
+  output RDERR;
+  output RDRSTBUSY;
+  output SBITERR;
+  output [13:0] WRCOUNT;
+  output WRERR;
+  output WRRSTBUSY;
+
+  input [63:0] CASDIN;
+  input [7:0] CASDINP;
+  input CASDOMUX;
+  input CASDOMUXEN;
+  input CASNXTRDEN;
+  input CASOREGIMUX;
+  input CASOREGIMUXEN;
+  input CASPRVEMPTY;
+  input [63:0] DIN;
+  input [7:0] DINP;
+  input INJECTDBITERR;
+  input INJECTSBITERR;
+  input RDCLK;
+  input RDEN;
+  input REGCE;
+  input RST;
+  input RSTREG;
+  input SLEEP;
+  input WRCLK;
+  input WREN;
+
+endmodule
+
 module FRAME_ECCE2 (...);
     parameter FARSRC = "EFAR";
     parameter FRAME_RBT_IN_FILENAME = "NONE";

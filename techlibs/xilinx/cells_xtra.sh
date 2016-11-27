@@ -50,6 +50,8 @@ function xtract_cell_decl()
 	# xtract_cell_decl FDSE
 	xtract_cell_decl FIFO18E1
 	xtract_cell_decl FIFO36E1
+	xtract_cell_decl FIFO18E2
+	xtract_cell_decl FIFO36E2
 	xtract_cell_decl FRAME_ECCE2
 	xtract_cell_decl GTHE2_CHANNEL
 	xtract_cell_decl GTHE2_COMMON
